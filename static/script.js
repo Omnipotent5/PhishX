@@ -36,22 +36,26 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Simple URL validation regex
+        const urlRegex = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z0-9]{2,4}(\/[^\s]*)?$/i;
+        if (!urlRegex.test(url)) {
+            resultSection.innerHTML = "<p style='color: red;'>Invalid URL format. Please try again!</p>";
+            return;
+        }
+
         // Show Loading Animation
         loadingSection.style.display = "block";
         resultSection.innerHTML = "<p style='color: yellow;'>🔄 Checking...</p>";
 
-        // Start the timer
-        console.time("API Response Time");
-
         try {
-            const response = await fetch("http://127.0.0.1:8001/predict", {
+            const response = await fetch("/predict", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ url: url })
             });
 
             const data = await response.json();
-            
+
             if (data.prediction === "Phishing") {
                 resultSection.innerHTML = `<p style="color: red;">⚠️ Warning! This might be a phishing website.</p>`;
             } else {
@@ -64,12 +68,10 @@ document.addEventListener("DOMContentLoaded", function () {
             // Save URL to history
             saveToHistory(url, data.prediction === "Phishing");
 
-            // End the timer and display the elapsed time
-            console.timeEnd("API Response Time");
         } catch (error) {
             resultSection.innerHTML = `<p style='color: orange;'>❌ Error checking website. Try again later.</p>`;
             console.error("Error:", error);
-            console.timeEnd("API Response Time");  // End timer even if there's an error
+            loadingSection.style.display = "none";
         }
     };
 
@@ -99,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
     updateHistoryDisplay();
 });
 
-// Fix: Correct button ID for the event listener
+// Attach the checkWebsite function to the button
 document.getElementById("checkWebsiteBtn").addEventListener("click", async () => {
     window.checkWebsite();
 });
